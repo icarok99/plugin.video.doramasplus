@@ -22,14 +22,14 @@ jobs:
 
       - name: Verificar se o ZIP existe
         run: |
-          if [ ! -f plugin.video.doramasplus ]; then
-            echo "❌ Arquivo plugin.video.doramasplus não encontrado."
+          if [ ! -f plugin.video.doramasplus.zip ]; then
+            echo "❌ Arquivo plugin.video.doramasplus.zip não encontrado."
             exit 1
           fi
 
       - name: Extrair ZIP na raiz
         run: |
-          unzip -o plugin.video.doramasplus
+          unzip -o plugin.video.doramasplus.zip
           chmod -R u+rwX,go+rX .
 
       - name: Configurar Git
