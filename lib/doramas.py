@@ -294,36 +294,16 @@ class DoramasOnline:
                 except:
                     continue
 
-            paginacao = soup.find("div", class_="pagination") \
-                        or soup.find("div", {"id": "paginador"}) \
-                        or soup.find("div", class_="resppages")
+            current_page = 1
+            m_current = re.search(r'/page/(\d+)', url)
+            if m_current:
+                try:
+                    current_page = int(m_current.group(1))
+                except:
+                    current_page = 1
 
-            if paginacao:
-                link = paginacao.find("a", href=re.compile(r'/page/\d+'))
-                if link and link.get('href'):
-                    m = re.search(r'/page/(\d+)', link.get('href'))
-                    if m:
-                        try:
-                            next_page = int(m.group(1))
-                        except:
-                            next_page = False
-                else:
-                    current = None
-                    cur_span = paginacao.find("span", class_="current")
-                    if cur_span:
-                        try:
-                            current = int(cur_span.text.strip())
-                        except:
-                            current = None
-                    for l in paginacao.find_all("a"):
-                        txt = l.text.strip()
-                        try:
-                            prox = int(txt)
-                            if current is None or prox > current:
-                                next_page = prox
-                                break
-                        except:
-                            continue
+            if itens:
+                next_page = current_page + 1
 
         except Exception:
             pass
