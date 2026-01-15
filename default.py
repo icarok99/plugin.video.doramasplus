@@ -37,7 +37,7 @@ def donate_question():
 
 @route('/')
 def index():
-    setcontent('tvshows')
+    setcontent('videos')
     addMenuItem({
         'name': 'PESQUISAR DORAMA',
         'description': '[B]Pesquise doramas pelo nome[/B]',
@@ -90,7 +90,11 @@ def doramassearch(param):
 
 @route('/doramas_dublados')
 def doramas_dublados(param):
-    page = int(param.get('page', '1'))
+    try:
+        page = int(param.get('page', 1))
+    except:
+        page = 1
+    
     itens, next_page = scraper.scraper_dublados(page=page)
     
     if itens:
@@ -109,7 +113,7 @@ def doramas_dublados(param):
                 'name': f'Página {next_page}',
                 'description': '',
                 'iconimage': translate(os.path.join(homeDir, 'resources', 'images','next.jpg')),
-                'page': str(next_page)
+                'page': next_page
             }, destiny='/doramas_dublados')
         
         end()
@@ -119,7 +123,11 @@ def doramas_dublados(param):
 
 @route('/doramas_legendados')
 def doramas_legendados(param):
-    page = int(param.get('page', '1'))
+    try:
+        page = int(param.get('page', 1))
+    except:
+        page = 1
+    
     itens, next_page = scraper.scraper_legendados(page=page)
     
     if itens:
@@ -138,7 +146,7 @@ def doramas_legendados(param):
                 'name': f'Página {next_page}',
                 'description': '',
                 'iconimage': translate(os.path.join(homeDir, 'resources', 'images','next.jpg')),
-                'page': str(next_page)
+                'page': next_page
             }, destiny='/doramas_legendados')
         
         end()
@@ -156,7 +164,6 @@ def episodios(param):
     if not url:
         return
     
-    # Verifica se é um filme
     if '/filmes/' in url:
         addMenuItem({
             'name': name,
@@ -168,7 +175,6 @@ def episodios(param):
         end()
         return
     
-    # Verifica se tem players diretos na página
     try:
         import requests
         r = requests.get(url, headers=scraper.headers, timeout=10)
@@ -186,7 +192,6 @@ def episodios(param):
     except:
         pass
     
-    # Lista episódios normalmente
     lista_episodios = scraper.scraper_episodios(url)
     if lista_episodios:
         setcontent('tvshows')
@@ -199,7 +204,7 @@ def episodios(param):
                 'playable': 'true'
             }, destiny='/opcoes', folder=False)
         end()
-        setview('List')
+        setview('WideList')
     else:
         notify('Nenhum episódio encontrado')
 
@@ -221,7 +226,6 @@ def opcoes(param):
         notify('NENHUMA OPÇÃO DE PLAYER DISPONÍVEL')
         return
     
-    # Filtra players pela prioridade
     if prioridade:
         op_filtradas = [(nome, link) for nome, link in op if prioridade in nome.upper()]
         
@@ -242,7 +246,6 @@ def opcoes(param):
             notify('AGUARDE...')
             page = op[op2][1]
             
-            # Resolve o link usando o Resolver
             stream, sub = resolver.resolverurls(page, url)
             
             if stream:
