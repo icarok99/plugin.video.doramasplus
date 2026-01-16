@@ -14,7 +14,7 @@ class Resolver:
             try:
                 xbmc.executebuiltin("UpdateLocalAddons()")
                 xbmc.executebuiltin("UpdateAddonRepos()")
-                xbmc.executebuiltin('InstallAddon(script.module.resolveurl)')
+                xbmc.executebuiltin('InstallAddon(script.module.resolveurl.fork)')
                 xbmc.executebuiltin('SendClick(11)')
                 time.sleep(7)
             except:
