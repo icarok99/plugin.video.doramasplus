@@ -39,18 +39,17 @@ class DoramasOnline:
             pass
         return url
 
-    def _clean_streamingverde_url(self, url):
-        if 'litch.alibabacdn.net' in url:
-            return url
-
+    def _clean_stream(self, url):
         try:
             if '&img=' in url:
-                return url.split('&img=')[0]
+                url = url.split('&img=')[0]
+            if '&poster=' in url:
+                url = url.split('&poster=')[0]
         except:
             pass
         return url
 
-    def _clean_litch_url(self, url):
+    def _clean_streamlitch(self, url):
         if not url or 'litch.alibabacdn.net' not in url:
             return url
         
@@ -58,6 +57,9 @@ class DoramasOnline:
         
         if '&img=' in url:
             url = url.split('&img=', 1)[0]
+        
+        if '&poster=' in url:
+            url = url.split('&poster=', 1)[0]
         
         url = url.rstrip('&').rstrip('?')
         
@@ -69,9 +71,9 @@ class DoramasOnline:
             qs = parse_qs(parsed.query)
 
             if "auth" not in qs:
-                url = self._clean_litch_url(url)
+                url = self._clean_streamlitch(url)
                 url = self._clean_aviso_url(url)
-                url = self._clean_streamingverde_url(url)
+                url = self._clean_stream(url)
                 return url
 
             b64data = qs["auth"][0]
@@ -83,20 +85,21 @@ class DoramasOnline:
 
             real = js.get("url")
             if not real:
-                url = self._clean_litch_url(url)
+                url = self._clean_streamlitch(url)
                 url = self._clean_aviso_url(url)
-                url = self._clean_streamingverde_url(url)
+                url = self._clean_stream(url)
                 return url
 
-            real = self._clean_litch_url(real)
+            real = self._clean_streamlitch(real)
             real = self._clean_aviso_url(real)
-            real = self._clean_streamingverde_url(real)
+            real = self._clean_stream(real)
+            
             return real
 
         except Exception:
-            url = self._clean_litch_url(url)
+            url = self._clean_streamlitch(url)
             url = self._clean_aviso_url(url)
-            url = self._clean_streamingverde_url(url)
+            url = self._clean_stream(url)
             return url
 
     def scraper_dublados(self, page=1):
