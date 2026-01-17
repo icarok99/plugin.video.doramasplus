@@ -2,7 +2,6 @@
 import sys
 import os
 
-# Garante compatibilidade de imports
 try:
     from urllib.parse import urlparse, parse_qs, quote, unquote, quote_plus, unquote_plus, urlencode
 except ImportError:    
@@ -41,13 +40,27 @@ class DoramasOnline:
         return url
 
     def _clean_streamingverde_url(self, url):
+        if 'litch.alibabacdn.net' in url:
+            return url
+
         try:
             if '&img=' in url:
                 return url.split('&img=')[0]
-            if '&' in url:
-                return url.split('&')[0]
         except:
             pass
+        return url
+
+    def _clean_litch_url(self, url):
+        if not url or 'litch.alibabacdn.net' not in url:
+            return url
+        
+        url = url.replace('&', '&')
+        
+        if '&img=' in url:
+            url = url.split('&img=', 1)[0]
+        
+        url = url.rstrip('&').rstrip('?')
+        
         return url
 
     def _decode_holuagency(self, url):
@@ -56,6 +69,7 @@ class DoramasOnline:
             qs = parse_qs(parsed.query)
 
             if "auth" not in qs:
+                url = self._clean_litch_url(url)
                 url = self._clean_aviso_url(url)
                 url = self._clean_streamingverde_url(url)
                 return url
@@ -69,15 +83,18 @@ class DoramasOnline:
 
             real = js.get("url")
             if not real:
+                url = self._clean_litch_url(url)
                 url = self._clean_aviso_url(url)
                 url = self._clean_streamingverde_url(url)
                 return url
 
+            real = self._clean_litch_url(real)
             real = self._clean_aviso_url(real)
             real = self._clean_streamingverde_url(real)
             return real
 
         except Exception:
+            url = self._clean_litch_url(url)
             url = self._clean_aviso_url(url)
             url = self._clean_streamingverde_url(url)
             return url
