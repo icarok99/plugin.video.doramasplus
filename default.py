@@ -2,10 +2,11 @@
 from lib.helper import *
 from lib.doramas import DoramasOnline
 from lib.resolver import Resolver
+from lib.proxy import get_proxy
 
-# Instâncias
 scraper = DoramasOnline('https://doramasonline.org')
 resolver = Resolver()
+proxy = get_proxy()
 
 if not exists(profile):
     try:
@@ -249,8 +250,10 @@ def opcoes(param):
             stream, sub = resolver.resolverurls(page, url)
             
             if stream:
+                stream_proxy = proxy.get_proxy_url(stream)
+                
                 play_video({
-                    'url': stream,
+                    'url': stream_proxy,
                     'sub': sub,
                     'name': name,
                     'iconimage': iconimage,
