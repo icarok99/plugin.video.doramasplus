@@ -263,10 +263,10 @@ def opcoes(param):
                 stream, sub = resolver.resolverurls(page_url, url)
                 
                 if stream:
-                    stream_limpo = proxy.get_proxy_url(stream)
+                    stream_proxy = proxy.get_proxy_url(stream)
                     
                     play_video({
-                        'url': stream_limpo,
+                        'url': stream_proxy,
                         'sub': sub,
                         'name': name,
                         'iconimage': iconimage,
@@ -302,10 +302,10 @@ def opcoes(param):
             stream, sub = resolver.resolverurls(page, url)
             
             if stream:
-                stream_limpo = proxy.get_proxy_url(stream)
+                stream_proxy = proxy.get_proxy_url(stream)
                 
                 play_video({
-                    'url': stream_limpo,
+                    'url': stream_proxy,
                     'sub': sub,
                     'name': name,
                     'iconimage': iconimage,
