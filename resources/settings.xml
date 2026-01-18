@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+    <category label="Reprodução automática">
+        <setting id="autoplay" type="bool" label="Ativar reprodução automática" default="false"/>
+    </category>
+    
+    <category label="Resolve url">
+        <setting id="update_resolveurl" type="action" label="Atualizar ResolveURL" action="RunScript(special://home/addons/plugin.video.doramasplus/lib/resolveurl.py,update)"/>
+    </category>
+</settings>
