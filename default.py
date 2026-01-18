@@ -36,6 +36,14 @@ def donate_question():
         dialog_donate = Donate_()
         dialog_donate.doModal()
 
+def get_autoplay_setting():
+    try:
+        setting_value = addon.getSetting('autoplay')
+        return setting_value == 'true'
+    except Exception as e:
+        log(f'Erro ao ler configuração autoplay: {e}')
+        return False
+
 @route('/')
 def index():
     setcontent('videos')
@@ -58,6 +66,12 @@ def index():
     }, destiny='/doramas_legendados')
     
     addMenuItem({
+        'name': 'CONFIGURAÇÕES',
+        'description': '[B]Área de configuração[/B]',
+        'iconimage': translate(os.path.join(homeDir, 'resources', 'images','settings.jpg'))
+    }, destiny='/settings')
+
+    addMenuItem({
         'name': 'DOAÇÃO',
         'description': '[B]Área de doação[/B]',
         'iconimage': translate(os.path.join(homeDir, 'resources', 'images','donate.jpg'))
@@ -69,6 +83,10 @@ def index():
 @route('/donate')
 def donate(param):
     donate_question()
+
+@route('/settings')
+def settings(param):
+    addon.openSettings()
 
 @route('/doramassearch')
 def doramassearch(param):
@@ -227,17 +245,51 @@ def opcoes(param):
         notify('NENHUMA OPÇÃO DE PLAYER DISPONÍVEL')
         return
     
-    if prioridade:
-        op_filtradas = [(nome, link) for nome, link in op if prioridade in nome.upper()]
-        
-        if not op_filtradas:
-            notify(f'Nenhum player {prioridade} encontrado!')
-            return
-        
-        op = op_filtradas
+    autoplay_enabled = get_autoplay_setting()
     
-    if op:
+    if autoplay_enabled:
+        notify('AGUARDE...')
+        
+        players_para_tentar = op
+        if prioridade:
+            players_prioritarios = [(nome, link) for nome, link in op 
+                                   if nome.upper().startswith(prioridade)]
+            
+            if players_prioritarios:
+                players_para_tentar = players_prioritarios
+        
+        for nome_player, page_url in players_para_tentar:
+            try:
+                stream, sub = resolver.resolverurls(page_url, url)
+                
+                if stream:
+                    stream_limpo = proxy.get_proxy_url(stream)
+                    
+                    play_video({
+                        'url': stream_limpo,
+                        'sub': sub,
+                        'name': name,
+                        'iconimage': iconimage,
+                        'description': description,
+                        'playable': playable
+                    })
+                    return
+            except Exception as e:
+                continue
+        
+        notify('NENHUM PLAYER FUNCIONOU')
+        return
+    
+    else:
+        if prioridade:
+            op_filtradas = [(nome, link) for nome, link in op 
+                           if nome.upper().startswith(prioridade)]
+            
+            if op_filtradas:
+                op = op_filtradas
+        
         items_options = [option for option, link in op]
+        
         try:
             op2 = select('SELECIONE UMA OPÇÃO:', items_options)
         except:
@@ -250,10 +302,10 @@ def opcoes(param):
             stream, sub = resolver.resolverurls(page, url)
             
             if stream:
-                stream_proxy = proxy.get_proxy_url(stream)
+                stream_limpo = proxy.get_proxy_url(stream)
                 
                 play_video({
-                    'url': stream_proxy,
+                    'url': stream_limpo,
                     'sub': sub,
                     'name': name,
                     'iconimage': iconimage,
@@ -262,5 +314,3 @@ def opcoes(param):
                 })
             else:
                 notify('STREAM INDISPONÍVEL, TENTE OUTRO PLAYER')
-    else:
-        notify('NENHUMA OPÇÃO DE PLAYER DISPONÍVEL')
