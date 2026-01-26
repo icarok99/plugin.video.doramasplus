@@ -26,7 +26,7 @@ def kill_process_on_port(port):
                 pid = result.decode().strip()
                 if pid and pid.isdigit():
                     break
-            except:
+            except Exception:
                 continue
         
         if pid and pid.isdigit():
@@ -39,7 +39,7 @@ def kill_process_on_port(port):
                 except (ProcessLookupError, PermissionError):
                     return False
         return False
-    except:
+    except Exception:
         return False
 
 
@@ -60,7 +60,7 @@ def is_port_responding(port, timeout=0.5):
         s.connect(("127.0.0.1", port))
         s.close()
         return True
-    except:
+    except Exception:
         return False
 
 
@@ -105,7 +105,7 @@ class StreamProxy:
                     self.running = True
                     return True
             return False
-        except:
+        except Exception:
             return False
 
         self.running = True
@@ -117,13 +117,13 @@ class StreamProxy:
     def _accept(self):
         while self.running:
             try:
-                client, _ = self.server.accept()
+                client, addr = self.server.accept()
                 t = threading.Thread(target=self._handle, args=(client,))
                 t.daemon = True
                 t.start()
             except socket.timeout:
                 continue
-            except:
+            except Exception:
                 break
 
     def _handle(self, client):
@@ -159,7 +159,7 @@ class StreamProxy:
             url, headers = self._parse_url_headers(decoded)
             self._process_request(client, url, headers, range_header)
 
-        except:
+        except Exception:
             pass
         finally:
             try:
@@ -229,7 +229,7 @@ class StreamProxy:
                 allow_redirects=True,
                 timeout=20
             )
-        except:
+        except Exception:
             self._send_error(client, 500)
             return
 
@@ -249,7 +249,7 @@ class StreamProxy:
                         remaining_chunks.append(chunk)
                 remaining = b"".join(remaining_chunks).decode("utf-8")
                 text = first_chunk.decode("utf-8") + remaining
-            except:
+            except Exception:
                 self._send_error(client, 500)
                 return
             
@@ -263,14 +263,16 @@ class StreamProxy:
                     b"Connection: close\r\n\r\n"
                 )
                 client.send(rewritten.encode("utf-8"))
-            except:
+            except Exception:
                 pass
             return
 
         is_clean = self._is_valid_mp4_start(first_chunk)
         has_garbage = self._has_garbage_prefix(first_chunk)
         
-        if is_clean and not has_garbage:
+        if has_garbage:
+            self._stream_with_cleaning(client, r, first_chunk)
+        elif range_header or is_clean:
             self._stream_direct(client, r, first_chunk, range_header)
         else:
             self._stream_with_cleaning(client, r, first_chunk)
@@ -302,7 +304,7 @@ class StreamProxy:
             headers += b"Connection: close\r\n\r\n"
             
             client.send(headers)
-        except:
+        except Exception:
             return
 
         try:
@@ -312,7 +314,7 @@ class StreamProxy:
                 if not chunk:
                     continue
                 client.send(chunk)
-        except:
+        except Exception:
             pass
 
     def _stream_with_cleaning(self, client, response, first_chunk):
@@ -323,7 +325,7 @@ class StreamProxy:
                 b"Connection: close\r\n"
                 b"Accept-Ranges: none\r\n\r\n"
             )
-        except:
+        except Exception:
             return
 
         buffer = first_chunk
@@ -340,14 +342,14 @@ class StreamProxy:
                 client.send(buffer[start:])
                 sent = True
                 buffer = b""
-            except:
+            except Exception:
                 return
         elif len(buffer) > 1024:
             try:
                 client.send(buffer)
                 sent = True
                 buffer = b""
-            except:
+            except Exception:
                 return
 
         for chunk in response.iter_content(16384):
@@ -371,7 +373,7 @@ class StreamProxy:
                         buffer = b""
                 else:
                     client.send(chunk)
-            except:
+            except Exception:
                 break
 
     def _rewrite_m3u8(self, content, base, headers):
@@ -415,7 +417,7 @@ class StreamProxy:
             
             l = self.get_proxy_url(l)
             out.append(l)
-            
+        
         return "\n".join(out)
 
     def get_proxy_url(self, url):
@@ -424,14 +426,14 @@ class StreamProxy:
     def _send_error(self, client, code):
         try:
             client.send(f"HTTP/1.1 {code} Error\r\n\r\n".encode())
-        except:
+        except Exception:
             pass
 
     def stop(self):
         self.running = False
         try:
             self.server.close()
-        except:
+        except Exception:
             pass
 
 
@@ -448,7 +450,7 @@ def get_proxy():
         if not is_port_responding(8899, timeout=0.3):
             try:
                 _proxy.stop()
-            except:
+            except Exception:
                 pass
             _proxy = StreamProxy()
             if not _proxy.start():
