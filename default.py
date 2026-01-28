@@ -78,7 +78,6 @@ def index():
     }, destiny='/donate')
     
     end()
-    setview('WideList')
 
 @route('/donate')
 def donate(param):
@@ -103,7 +102,6 @@ def doramassearch(param):
                     'url': href
                 }, destiny='/episodios')
             end()
-            setview('List')
         else:
             notify('Nenhum resultado encontrado')
 
@@ -136,7 +134,6 @@ def doramas_dublados(param):
             }, destiny='/doramas_dublados')
         
         end()
-        setview('List')
     else:
         notify('Nenhum dorama disponível')
 
@@ -169,7 +166,6 @@ def doramas_legendados(param):
             }, destiny='/doramas_legendados')
         
         end()
-        setview('List')
     else:
         notify('Nenhum dorama disponível')
 
@@ -213,7 +209,7 @@ def episodios(param):
     
     lista_episodios = scraper.scraper_episodios(url)
     if lista_episodios:
-        setcontent('tvshows')
+        setcontent('episodes')
         for title, link, img, _ in lista_episodios:
             addMenuItem({
                 'name': title,
@@ -223,7 +219,6 @@ def episodios(param):
                 'playable': 'true'
             }, destiny='/opcoes', folder=False)
         end()
-        setview('WideList')
     else:
         notify('Nenhum episódio encontrado')
 
