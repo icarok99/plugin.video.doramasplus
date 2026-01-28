@@ -28,6 +28,27 @@ class DoramasOnline:
     def soup(self, html):
         return BeautifulSoup(html, 'html.parser')
 
+    def _improve_image_quality(self, img_url):
+        """
+        Melhora a qualidade da imagem substituindo tamanhos baixos do TMDB por w780 (alta qualidade)
+        """
+        if not img_url or 'image.tmdb.org' not in img_url:
+            return img_url
+        
+        # Padrões de tamanho do TMDB que podem estar na URL
+        low_quality_patterns = [
+            '/w92/', '/w154/', '/w185/', '/w342/', '/w500/',
+            '/h632/', '/original/'
+        ]
+        
+        # Substituir qualquer tamanho encontrado por w780 (alta qualidade)
+        for pattern in low_quality_patterns:
+            if pattern in img_url:
+                img_url = img_url.replace(pattern, '/w780/')
+                break
+        
+        return img_url
+
     def _clean_aviso_url(self, url):
         try:
             parsed = urlparse(url)
@@ -183,6 +204,7 @@ class DoramasOnline:
 
                         link = a.get('href', '').strip()
                         thumb = img.get('src', '').strip() if img else ''
+                        thumb = self._improve_image_quality(thumb)
 
                         episodios.append((full_title, link, thumb, url))
 
@@ -229,6 +251,7 @@ class DoramasOnline:
 
                     link = a.get('href', '').strip()
                     thumb = img.get('src', '').strip() if img else ''
+                    thumb = self._improve_image_quality(thumb)
 
                     episodios.append((full_title, link, thumb, url))
 
@@ -310,6 +333,7 @@ class DoramasOnline:
                     title_tag = art.find("h3") or a
                     title = title_tag.text.strip() if title_tag else href
                     img = (art.find("img").get("src", "") if art.find("img") else "")
+                    img = self._improve_image_quality(img)
                     itens.append((title, href, img, title, url))
                 except:
                     continue
@@ -347,6 +371,7 @@ class DoramasOnline:
                     title_tag = res.find("div", class_="title") or res.find("h3") or a
                     title = title_tag.text.strip() if title_tag else href
                     img = (res.find("img").get("src", "") if res.find("img") else "")
+                    img = self._improve_image_quality(img)
                     itens.append((title, href, img, title, self.base))
                 except:
                     continue
