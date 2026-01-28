@@ -103,7 +103,7 @@ def doramassearch(param):
                     'url': href
                 }, destiny='/episodios')
             end()
-            setview('Wall')
+            setview('List')
         else:
             notify('Nenhum resultado encontrado')
 
@@ -136,7 +136,7 @@ def doramas_dublados(param):
             }, destiny='/doramas_dublados')
         
         end()
-        setview('Wall')
+        setview('List')
     else:
         notify('Nenhum dorama disponível')
 
@@ -169,7 +169,7 @@ def doramas_legendados(param):
             }, destiny='/doramas_legendados')
         
         end()
-        setview('Wall')
+        setview('List')
     else:
         notify('Nenhum dorama disponível')
 
