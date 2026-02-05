@@ -222,6 +222,18 @@ def episodios(param):
     else:
         notify('Nenhum episódio encontrado')
 
+def tentar_resolver_player(nome_player, page_url, url):
+    try:
+        stream, sub = resolver.resolverurls(page_url, url)
+        
+        if stream:
+            return stream, sub
+        else:
+            return None, None
+            
+    except Exception as e:
+        return None, None
+
 @route('/opcoes')
 def opcoes(param):
     name = param.get("name", "Doramas")
@@ -245,32 +257,35 @@ def opcoes(param):
     if autoplay_enabled:
         notify('AGUARDE...')
         
-        players_para_tentar = op
-        if prioridade:
-            players_prioritarios = [(nome, link) for nome, link in op 
-                                   if nome.upper().startswith(prioridade)]
-            
-            if players_prioritarios:
-                players_para_tentar = players_prioritarios
+        players_prioritarios = []
+        players_outros = []
         
-        for nome_player, page_url in players_para_tentar:
-            try:
-                stream, sub = resolver.resolverurls(page_url, url)
+        if prioridade:
+            for nome, link in op:
+                if prioridade in nome.upper():
+                    players_prioritarios.append((nome, link))
+                else:
+                    players_outros.append((nome, link))
+        else:
+            players_outros = op
+        
+        players_para_tentar = players_prioritarios + players_outros
+        
+        for idx, (nome_player, page_url) in enumerate(players_para_tentar, 1):
+            stream, sub = tentar_resolver_player(nome_player, page_url, url)
+            
+            if stream:
+                stream_proxy = proxy.get_proxy_url(stream)
                 
-                if stream:
-                    stream_proxy = proxy.get_proxy_url(stream)
-                    
-                    play_video({
-                        'url': stream_proxy,
-                        'sub': sub,
-                        'name': name,
-                        'iconimage': iconimage,
-                        'description': description,
-                        'playable': playable
-                    })
-                    return
-            except Exception as e:
-                continue
+                play_video({
+                    'url': stream_proxy,
+                    'sub': sub,
+                    'name': name,
+                    'iconimage': iconimage,
+                    'description': description,
+                    'playable': playable
+                })
+                return
         
         notify('NENHUM PLAYER FUNCIONOU')
         return
@@ -278,7 +293,7 @@ def opcoes(param):
     else:
         if prioridade:
             op_filtradas = [(nome, link) for nome, link in op 
-                           if nome.upper().startswith(prioridade)]
+                           if prioridade in nome.upper()]
             
             if op_filtradas:
                 op = op_filtradas
